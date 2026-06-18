@@ -7,6 +7,8 @@ import { OrbitControls, Stars } from "@react-three/drei";
 import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
 import { Galaxy } from "@/components/Galaxy";
 import { TheorySphere } from "@/components/TheorySphere";
+import { CosmicWeb } from "@/components/CosmicWeb";
+import { BackgroundUniverses } from "@/components/BackgroundUniverses";
 import { Rig } from "@/components/Rig";
 import { InfoCard } from "@/components/InfoCard";
 import { THEORIES } from "@/lib/theories";
@@ -51,7 +53,13 @@ export default function Scene() {
 
         <Stars radius={90} depth={60} count={3500} factor={4} saturation={0} fade speed={0.4} />
 
+        {/* a sea of endless alternate universes, deep in the far background */}
+        <BackgroundUniverses />
+
         <Galaxy />
+
+        {/* cosmic-web filaments linking the three bubble universes */}
+        <CosmicWeb />
 
         {THEORIES.map((theory) => (
           <TheorySphere
@@ -98,13 +106,13 @@ export default function Scene() {
             variants={hudItem(0)}
             className="font-display text-[11px] uppercase tracking-[0.45em] text-white/40"
           >
-            An Interactive Cosmos
+            An Interactive Multiverse
           </motion.p>
           <motion.h1
             variants={hudItem(1)}
             className="mt-2 font-display text-3xl font-semibold tracking-tight text-white sm:text-5xl"
           >
-            Cosmic <span className="text-white/45">Theories</span>
+            Multiverse <span className="text-white/45">Navigation Hub</span>
           </motion.h1>
         </header>
 
@@ -133,13 +141,13 @@ export default function Scene() {
                     }}
                   />
                   <span
-                    className={`font-display text-sm tracking-wide transition ${
+                    className={`whitespace-nowrap font-display text-sm tracking-wide transition ${
                       isActive
                         ? "text-white"
                         : "text-white/45 group-hover:text-white/85"
                     }`}
                   >
-                    {theory.title}
+                    {theory.navLabel ?? theory.title}
                   </span>
                 </motion.button>
               );

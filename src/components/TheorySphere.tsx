@@ -7,6 +7,7 @@ import { easing } from "maath";
 import * as THREE from "three";
 import type { Theory } from "@/lib/theories";
 import { AccretionDisk } from "@/components/AccretionDisk";
+import { InternalGalaxy } from "@/components/InternalGalaxy";
 
 type Props = {
   theory: Theory;
@@ -90,6 +91,15 @@ const fragmentShader = /* glsl */ `
     return v;
   }
 
+  // Inigo Quilez cosine palette -> smooth iridescent rainbow band
+  vec3 iridescentPalette(float t) {
+    vec3 a = vec3(0.5, 0.5, 0.5);
+    vec3 b = vec3(0.5, 0.5, 0.5);
+    vec3 c = vec3(1.0, 1.0, 1.0);
+    vec3 d = vec3(0.0, 0.33, 0.67);
+    return a + b * cos(6.28318 * (c * t + d));
+  }
+
   void main() {
     vec3 normal = normalize(vViewNormal);
     vec3 viewDir = normalize(vViewDir);
@@ -104,16 +114,31 @@ const fragmentShader = /* glsl */ `
     // sharpen the noise into flowing energy veins
     float veins = smoothstep(0.35, 0.85, n);
 
+    // ---- thin-film iridescence (oil-on-water) ----
+    // hue driven by viewing angle (fresnel) + slow time + a touch of noise,
+    // so the sheen shifts as the bubble turns and as time passes
+    float hue = fres * 2.2 + uTime * 0.06 + n * 0.25;
+    vec3 sheen = iridescentPalette(hue);
+    // concentrate the rainbow toward the rim where thin-film bands read best
+    float sheenMask = pow(fres, 1.6) * (0.45 + veins * 0.4);
+
     // base body brightness: dim core + noise energy, lifted by intensity
-    float body = 0.18 + veins * 0.55;
-    float glow = rim * (0.9 + uIntensity * 1.6) + body * (0.55 + uIntensity * 0.9);
+    // lower base so the shell is clearly translucent and the inner galaxy shows through
+    float body = 0.08 + veins * 0.32;
+    float glow = rim * (0.75 + uIntensity * 1.4) + body * (0.4 + uIntensity * 0.8);
 
-    // saturate / brighten when active or hovered
+    // accent-tinted base body
     vec3 col = uColor * glow;
-    col += uColor * rim * (0.6 + uIntensity * 1.2); // hot rim
-    col = mix(col, col * 1.35 + uColor * 0.25, uIntensity); // pop on activation
+    col += uColor * rim * (0.55 + uIntensity * 1.1); // hot accent rim
 
-    float alpha = clamp(glow + rim * 0.5, 0.0, 1.0);
+    // blend the iridescent sheen on top — subtle, mostly on the rim
+    float sheenAmt = sheenMask * (0.35 + uIntensity * 0.45);
+    col = mix(col, col + sheen, sheenAmt);
+
+    col = mix(col, col * 1.3 + uColor * 0.2, uIntensity); // pop on activation
+
+    // translucent bubble: keep base alpha low, brighten the rim so it reads as a shell
+    float alpha = clamp(body * 0.6 + rim * 0.7 + sheenAmt * 0.4, 0.0, 0.85);
 
     gl_FragColor = vec4(col, alpha);
   }
@@ -210,6 +235,9 @@ export function TheorySphere({ theory, active, onSelect }: Props) {
           toneMapped={false}
         />
       </mesh>
+
+      {/* tiny spinning spiral galaxy living inside the translucent bubble */}
+      <InternalGalaxy radius={theory.radius} color={theory.color} />
 
       {/* volumetric halo — breathing neon glow */}
       <mesh ref={haloRef} scale={1.7} raycast={() => null}>

@@ -1,6 +1,8 @@
 export type Theory = {
   id: string;
   title: string;
+  /** label shown in the left-hand HUD nav menu (falls back to title) */
+  navLabel?: string;
   tag: string;
   /** accent hex used across the 3D mesh, glow and UI card */
   color: string;
@@ -18,6 +20,7 @@ export const THEORIES: Theory[] = [
   {
     id: "big-bang",
     title: "The Big Bang",
+    navLabel: "Universe Alpha: The Big Bang",
     tag: "Origin · 13.8 Billion Years Ago",
     color: "#ffb454",
     position: [0, 0, 0],
@@ -40,6 +43,7 @@ export const THEORIES: Theory[] = [
   {
     id: "black-holes",
     title: "Black & White Holes",
+    navLabel: "Universe Beta: The Singularity Mirror",
     tag: "Gravity · Points of No Return",
     color: "#9b7bff",
     position: [5.4, 0.4, -1.6],
@@ -62,6 +66,7 @@ export const THEORIES: Theory[] = [
   {
     id: "parallel-universes",
     title: "Parallel Universes",
+    navLabel: "Universe Gamma: Parallel Dimensions",
     tag: "Multiverse · Infinite Possibility",
     color: "#3fe0c5",
     position: [-4.7, -0.3, 3.6],
